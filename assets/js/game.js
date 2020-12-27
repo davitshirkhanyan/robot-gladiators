@@ -20,11 +20,21 @@ for(let i = 0; i < enemyInfo.length; i++) {
         console.log(pickedEnemyObj);
 
         // pass the pickedenemy.name variable's value into the fight function, where it will assume the value of the enemy.name parameter
+        
         fight(pickedEnemyObj);
+        
 
-        // if player is not alive, break out of the loop and let endGame function run
+        // if player is still alive after the fight and we're not at the last enemy in the array
+        if (playerInfo.health > 0 && i < enemyInfo.length - 1) {
+             // ask if player wants to use the store before next round
+        var storeConfirm = window.confirm("The fight is over, visit the store before the next round?");
+           // if yes, take them to the store() function
+        if (storeConfirm) {
+            shop();
+          }
+        }
+         // if player is not alive, break out of the loop and let endGame function run
     } else {
-       // window.alert("You have lost your robot in battle! Game Over!");
         break;
         }
     }
@@ -37,12 +47,18 @@ for(let i = 0; i < enemyInfo.length; i++) {
 var endGame = function() {
     window.alert("The game has now ended. Let's see how you did!");
 
-      // if player is still alive, player wins!
-      if(playerInfo.health > 0) {
-          window.alert("Great job, you've survived the game! You now have a score of " + playerInfo.money + ".");
-      } else {
-        window.alert("You've lost your robot in battle.");
-      }
+    // check localStorage for high score, if it's not there, use 0
+    var highScore = localStorage.getItem("highscore") || 0;
+
+    // if player have more money than the high score, player has new high score!
+    if (playerInfo.money > highScore) {
+        localStorage.setItem("highscore", playerInfo.money);
+        localStorage.setItem("name", playerInfo.name);
+
+        alert(playerInfo.name + " now has the high score of " + playerInfo.money + "!");
+    } else {
+        alert(playerInfo.name + " did not beat the high score of " + highScore + ". Maybe next time!");
+    }
 
       // ask player if they'd like to play again
       var playAgainConfirm = window.confirm("Would you like to play again?");
@@ -55,18 +71,21 @@ var endGame = function() {
       }
 };
 
+// function to check if player wants to fight or skip
 var fightOrSkip = function() {
     // ask player if they'd like to fight or run
     var promptFight = window.prompt("Would you like to FIGHT or SKIP this battle? Enter 'FIGHT' or 'SKIP' to choose.");
-
+   
     // Conditional Recursive Function Call
-    if (promptFight === "" || promptFight === null) {
+    if (promptFight === "" || promptFight === null || !isNaN(promptFight)) {
         window.alert("You need to provide a valid answer! Please try again.");
+        // use return to call it again and stop the rest of this function from running
         return fightOrSkip();
     }
        
     // if player choses to skip
     promptFight = promptFight.toLowerCase();
+    
         if (promptFight === "skip") {
              // confirm player wants to skip
             var confirmSkip = window.confirm("Are you sure you'd like to quit?");
@@ -76,10 +95,12 @@ var fightOrSkip = function() {
                 window.alert(playerInfo.name + " has decided to skip this fight. Goodbye!");
                 // subtract money from playerInfo.money for skipping
                 playerInfo.money = Math.max(0, playerInfo.money - 10);
-                shop();
+                // return true if player wants to leave
+                
                 return true;
             }
-        }  
+
+        } 
         return false;
     };
 
@@ -89,7 +110,7 @@ var fight = function(enemy) {
     // keep track of who goes first
     var isPlayerTurn = true;
 
-    if (Math.random() > .5) {
+    if (Math.random() > 0.5) {
         isPlayerTurn = false;
     }
     
@@ -146,6 +167,12 @@ var fight = function(enemy) {
 var shop = function() {
     // ask player what they'd like to do
     var shopOptionPrompt = window.prompt("Would you like to REFILL your health, UPGRADE your attack, or LEAVE the store? Please enter one 1 for REFILL, 2 for UPGRADE, or 3 for LEAVE.");
+   // check if prompt answer was left blank, player hit "cancel", or provided a number instead
+  if (shopOptionPrompt === null || shopOptionPrompt === "" || isNaN(shopOptionPrompt)) {
+    window.alert("You need to provide a valid answer! Please try again.");
+    return shop();
+  }
+   // convert answer from prompt to an actual number
     shopOptionPrompt = parseInt(shopOptionPrompt);
     // use switch to carry out action
     switch(shopOptionPrompt) {
@@ -169,7 +196,7 @@ var shop = function() {
 
 // function to generate a random numeric value
 var randomNumber = function(min, max) {
-    var value = Math.floor(Math.random() * (max - min + 1) + min);
+    var value = Math.floor(Math.random() * (max - min) + min);
 
     return value;
 };
@@ -186,6 +213,7 @@ var getPlayerName = function() {
     console.log("Your robot's name is " + name);
     return name;
 };
+/* END GAME FUNCTIONS */
 
 var playerInfo = {
     name: getPlayerName(),
